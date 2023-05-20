@@ -1,0 +1,144 @@
+---
+title: "Untitled"
+author: "mrvn"
+date: "2023-05-11"
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+library(readr)
+library(dplyr)
+```
+
+```{r}
+data <- read.csv("diabetes_binary_health_indicators_BRFSS2015.csv")
+head(data)
+```
+
+```{r}
+summary(data)
+```
+
+```{r}
+colSums(is.na(data))
+```
+
+```{r}
+dim(data)
+```
+
+```{r}
+col_classes <- sapply(data, class)
+col_classes
+```
+
+```{r}
+ggplot(data, aes(x=BMI)) + geom_histogram()
+```
+
+```{r}
+ggplot(data, aes(x=GenHlth)) + geom_histogram()
+```
+```{r}
+ggplot(data, aes(x=MentHlth)) + geom_histogram()
+```
+```{r}
+ggplot(data, aes(x=PhysHlth)) + geom_histogram()
+```
+```{r}
+ggplot(data, aes(x=Age)) + geom_histogram()
+```
+```{r}
+ggplot(data, aes(x=Income)) + geom_histogram()
+```
+```{r}
+ggplot(data, aes(x=Education)) + geom_histogram()
+```
+```{r}
+ggplot(data, aes(x=Diabetes_binary)) + geom_bar()
+```
+```{r}
+# Create a new data frame with counts of each combination of diabetes_binary and highBP
+counts <- data %>% group_by(Diabetes_binary, HighBP) %>% summarise(count = n())
+
+# Create a stacked bar chart
+ggplot(counts, aes(x = Diabetes_binary, y = count, fill = HighBP)) +
+  geom_bar(stat = "identity")
+```
+
+```{r}
+# Create a new data frame with counts of each combination of diabetes_binary and highChol
+counts <- data %>% group_by(Diabetes_binary, HighChol) %>% summarise(count = n())
+
+# Create a stacked bar chart
+ggplot(counts, aes(x = Diabetes_binary, y = count, fill = HighChol)) +
+  geom_bar(stat = "identity")
+```
+
+```{r}
+# Create a new data frame with counts of each combination of diabetes_binary and Stroke
+counts <- data %>% group_by(Diabetes_binary, Stroke) %>% summarise(count = n())
+
+# Create a stacked bar chart
+ggplot(counts, aes(x = Diabetes_binary, y = count, fill = Stroke)) +
+  geom_bar(stat = "identity")
+```
+
+```{r}
+# Create a new data frame with counts of each combination of diabetes_binary and Smoker
+counts <- data %>% group_by(Diabetes_binary, Smoker) %>% summarise(count = n())
+
+# Create a stacked bar chart
+ggplot(counts, aes(x = Diabetes_binary, y = count, fill = Smoker)) +
+  geom_bar(stat = "identity")
+```
+
+```{r}
+# Create a new data frame with counts of each combination of diabetes_binary and HeartDiseaseorAttack
+counts <- data %>% group_by(Diabetes_binary, HeartDiseaseorAttack) %>% summarise(count = n())
+
+# Create a stacked bar chart
+ggplot(counts, aes(x = Diabetes_binary, y = count, fill = HeartDiseaseorAttack)) +
+  geom_bar(stat = "identity")
+```
+
+```{r}
+data <- subset(data, !duplicated(data))
+```
+
+STATISTICAL TESTING
+```{r}
+# contingency table of Diabetes_binary and HighBP
+table <- table(data$Diabetes_binary, data$HighBP)
+
+# chi-squared test of independence
+chisq.test(table)
+
+```
+the chi-squared value of 1480 and the very small p-value (< 2.2e-16) indicate that the observed frequencies in the table are unlikely to be due to chance alone. 
+Overall, this is a good result that indicates a strong relationship between the two variables.
+```{r}
+# t-test of BMI between those with diabetes and those without
+t.test(data$BMI ~ data$Diabetes_binary)
+```
+The p-value is very small, which means that the chance of observing such a large difference in BMI between the two groups by random chance alone is very low. The t-value of -99.92 suggests that the difference in BMI between the two groups is quite substantial.
+```{r}
+# one-way ANOVA of GenHlth based on education level
+fit <- lm(GenHlth ~ Education, data = data)
+anova(fit)
+```
+the Education variable accounts for a significant proportion of the variance in General Health status, as indicated by the large F-value and very small p-value (< 2.2e-16). The Sum Sq and Mean Sq values indicate the amount of variability in the GenHlth variable that can be attributed to the Education variable. The small residual Mean Sq value suggests that there is very little variability in GenHlth that is not accounted for by the Education variable. Overall, this is a good result that indicates a strong relationship between Education level and General Health status.
+```{r}
+correlations <- cor(data)
+target_correlations <- correlations["Diabetes_binary", ]
+target_correlations
+```
+
+```{r}
+model <- glm(Diabetes_binary ~ ., data = data, family = "binomial")
+```
+
+```{r}
+summary(model)
+```
