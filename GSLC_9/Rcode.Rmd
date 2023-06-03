@@ -174,12 +174,11 @@ for (var in colnames(binary_columns)) {
 
 
 ```{r}
-library(psych)
-
+library(ltm)
 print("Binary - Ordinal:")
 for (var in colnames(ordinal_columns)) {
 
-  correlation_result <- biserial.cor(continuous_columns[[var]], dependent$binary_columns.Diabetes_binary)
+  correlation_result <- biserial.cor(ordinal_columns[[var]], dependent$binary_columns.Diabetes_binary)
 
   rank_biserial <- correlation_result
   
