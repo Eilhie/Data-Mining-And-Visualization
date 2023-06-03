@@ -129,11 +129,75 @@ fit <- lm(GenHlth ~ Education, data = data)
 anova(fit)
 ```
 the Education variable accounts for a significant proportion of the variance in General Health status, as indicated by the large F-value and very small p-value (< 2.2e-16). The Sum Sq and Mean Sq values indicate the amount of variability in the GenHlth variable that can be attributed to the Education variable. The small residual Mean Sq value suggests that there is very little variability in GenHlth that is not accounted for by the Education variable. Overall, this is a good result that indicates a strong relationship between Education level and General Health status.
+
 ```{r}
-correlations <- cor(data)
-target_correlations <- correlations["Diabetes_binary", ]
-target_correlations
+
+# Load the dplyr package
+library(dplyr)
+
+# Filter binary and continuous columns
+binary_columns <- data %>%
+  select_if(function(x) all(x %in% c(0, 1)))
+
+continuous_columns <- data %>%
+  select_if(function(x) is.numeric(x) && !all(x %in% c(0, 1)))
+
+# Print the filtered columns
+dependent = data.frame(binary_columns$Diabetes_binary)
+binary_columns <- binary_columns[, -which(names(binary_columns) == "Diabetes_binary")]
+
+ordinal_columns <- subset(continuous_columns, select = c(Education, Income, Age))
+continuous_columns <- subset(continuous_columns, select = -c(Education, Income, Age))
+
+print(ordinal_columns)
+
+print(binary_columns)
+print(continuous_columns)
+print(dependent)
+
 ```
+
+```{r}
+
+print("Binary - Binary:")
+for (var in colnames(binary_columns)) {
+  # Binary - Binary (Chi-square and Phi coefficient)
+  chi_square <- chisq.test(dependent, binary_columns[[var]])$statistic
+  phi_coefficient <- sqrt(chi_square / length(dependent))
+  
+  print(paste("Column name:", var))
+  print(paste("Chi-square:", chi_square))
+  print(paste("Phi coefficient:", phi_coefficient))
+}
+
+```
+
+
+```{r}
+library(psych)
+
+print("Binary - Ordinal:")
+for (var in colnames(ordinal_columns)) {
+
+  correlation_result <- biserial.cor(continuous_columns[[var]], dependent$binary_columns.Diabetes_binary)
+
+  rank_biserial <- correlation_result
+  
+  print(paste("Column name:", var))
+  print(paste("rank biserial:", rank_biserial))
+}
+```
+
+```{r}
+print("Binary - continuos:")
+for (var in colnames(continuous_columns)) {
+  print(paste("Column name:", var))
+  print("point biserial:")
+  print(cor.test(continuous_columns[[var]], dependent$binary_columns.Diabetes_binary))
+}
+```
+
+
 
 ```{r}
 model <- glm(Diabetes_binary ~ ., data = data, family = "binomial")
