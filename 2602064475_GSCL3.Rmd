@@ -1,0 +1,112 @@
+
+```{r}
+library(tidyverse)
+library(corrplot)
+library(tidyr)
+library(ggplot2)
+library(mice)
+library(maps)
+library(mapdata)
+data <- read.csv("C://us_county_sociohealth_data.csv")
+```
+
+
+```{r}
+numerical_vars <- names(data)[sapply(data, is.numeric)]
+categorical_vars <- names(data)[sapply(data, is.factor)]
+
+impute_missing_values <- function(data) {
+  numerical_vars <- sapply(data, is.numeric)  # Identify numerical variables
+  categorical_vars <- sapply(data, is.factor)  # Identify categorical variables
+  
+  # Impute numerical variables with mean
+  data[numerical_vars] <- lapply(data[numerical_vars], function(x) ifelse(is.na(x), mean(x, na.rm = TRUE), x))
+  
+  # Impute categorical variables with mode
+  data[categorical_vars] <- lapply(data[categorical_vars], function(x) {
+    ifelse(is.na(x), names(table(x))[which.max(table(x))], x)
+  })
+  
+  return(data)
+}
+
+# Call the impute_missing_values function on your dataframe
+data <- impute_missing_values(data)
+```
+
+```{r}
+#death statistic in each state
+world_map <- map_data("world")
+
+data_attribute <- data.frame(
+  states = data$state,
+  deaths = data$num_deaths,
+  latitude = data$lat,
+  longitude = data$lon
+)
+
+merged_data <- merge(world_map, data_attribute, by.x = "region", by.y = "states", all = TRUE)
+
+map_plot <- ggplot() +
+  geom_polygon(data = merged_data, aes(x = long, y = lat, group = group), fill = "lightblue", color = "black") +
+  geom_point(data = data_attribute, aes(x = longitude, y = latitude, size = deaths), color = "red") +
+  ggtitle("States Locations with Deaths") +
+  theme_void()
+
+# Display the plot
+print(map_plot)
+
+```
+
+```{r}
+#cause of deaths
+#1. num of driving deaths
+bar_plot <- ggplot(data, aes(x = state, y = num_driving_deaths)) +
+  geom_bar(stat = "identity", fill = "lightblue") +
+  xlab("State") +
+  ylab("Death Number") +
+  ggtitle("Comparison of Driving Death Numbers by State") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+print(bar_plot)
+
+#2. num of drug overdose
+bar_plot <- ggplot(data, aes(x = state, y = num_drug_overdose_deaths)) +
+  geom_bar(stat = "identity", fill = "lightblue") +
+  xlab("State") +
+  ylab("Death Number") +
+  ggtitle("Comparison of Drug Overdose Death Numbers by State") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+print(bar_plot)
+```
+```{r}
+#age >= 65
+bar_plot <- ggplot(data, aes(x = state, y = num_age_65_and_older)) +
+  geom_bar(stat = "identity", fill = "lightblue") +
+  xlab("State") +
+  ylab("Death Number") +
+  ggtitle("Comparison of age >= 65 by State") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+print(bar_plot)
+```
+
+```{r}
+#uninsured statistics
+bar_plot <- ggplot(data, aes(x = state, y = num_uninsured)) +
+  geom_bar(stat = "identity", fill = "lightblue") +
+  xlab("State") +
+  ylab("Death Number") +
+  ggtitle("Comparison of uninsured Numbers by State") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+print(bar_plot)
+```
+```{r}
+#income ratio
+bar_plot <- ggplot(data, aes(x = state, y = income_ratio)) +
+  geom_bar(stat = "identity", fill = "lightblue") +
+  xlab("State") +
+  ylab("Death Number") +
+  ggtitle("Comparison of income ratio by State") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+print(bar_plot)
+```
+
